@@ -369,16 +369,18 @@
             return new Date().getTime() + serverTimeOffset;
         }
 
-        // 🛠️ แก้ไขคีย์บันทึกโครงสร้างข้อมูลอีเมลให้ตรงล็อกเดียวกันทั้งหมดป้องกันบั๊กสิทธิ์ค้าง
-        function getCleanKey(email) {
-            return email.toLowerCase().replace(/@clan\.com$/, '').replace(/[^a-zA-Z0-9_]/g, '_');
+        // 🛠️ แก้จุดฟอร์แมตคีย์ให้เรียบง่าย ตรงล็อก ไม่บั๊กตัวเลขสลับตำแหน่งเด็ดขาด
+        function getCleanKey(username) {
+            return username.toLowerCase().trim();
         }
 
         function checkUserStatus(user) {
-            const cleanEmail = getCleanKey(user.email);
+            // ดึงชื่อดิบข้างหน้า @clan.com ออกมาโดยตรงเพื่อเช็กคีย์สิทธิ์
+            const username = user.email.split('@')[0];
+            const cleanEmail = getCleanKey(username);
             
             const userPresenceRef = ref(database, `online_users/${cleanEmail}`);
-            set(userPresenceRef, { username: cleanEmail, lastActive: getSyncedCurrentTime() });
+            set(userPresenceRef, { username: username, lastActive: getSyncedCurrentTime() });
             onDisconnect(userPresenceRef).remove(); 
 
             onValue(ref(database, `online_users`), (onlineSnap) => {
@@ -434,7 +436,7 @@
             if(pass !== document.getElementById('regConfirmPass').value) return alert("รหัสผ่านไม่ตรงกัน");
             
             const simulatedEmail = `${user}@clan.com`;
-            const cleanEmail = getCleanKey(simulatedEmail);
+            const cleanEmail = getCleanKey(user); // อิงคีย์สมัครจากชื่อดิบที่พิมพ์โดยตรง
 
             createUserWithEmailAndPassword(auth, simulatedEmail, pass).then(() => {
                 set(ref(database, `users_status/${cleanEmail}`), { username: user, email: simulatedEmail, status: "pending" });
@@ -448,11 +450,10 @@
             const pass = document.getElementById('loginPass').value;
             if(!user || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
             
-            if(user === "admin" && pass === "admin123") {
+            if(user.toLowerCase() === "admin" && pass === "admin123") {
                 signInWithEmailAndPassword(auth, "admin@clan.com", "admin123").catch(() => {
                     createUserWithEmailAndPassword(auth, "admin@clan.com", "admin123").then(() => {
-                        const cleanEmail = "admin";
-                        set(ref(database, `users_status/${cleanEmail}`), { username: "admin", email: "admin@clan.com", status: "active" });
+                        set(ref(database, `users_status/admin`), { username: "admin", email: "admin@clan.com", status: "active" });
                     });
                 });
                 return;
@@ -522,24 +523,14 @@
             });
         }
 
-        // 🛠️ แก้ไขบั๊กปุ่มกดสร้างตัวละครนิ่งสนิท เปลี่ยนมาใช้คำสั่ง get() ดึงข้อมูลครั้งเดียว ไม่เกิดลูปซ้ำซ้อน
         window.handleCreateProfile = function() {
-            const name = document.getElementById('newProfileName').value.trim(); 
-            if(!name) return alert("กรุณาระบุชื่อ");
-            
-            const uid = auth.currentUser.uid; 
-            const pRef = ref(database, `users_profiles/${uid}`);
-            
-            get(pRef).then((snap) => {
-                const curr = snap.val() || []; 
-                if(curr.length >= 5) return alert("สร้างได้สูงสุด 5 ชื่อ"); 
-                if(curr.includes(name)) return alert("มีชื่อนี้อยู่แล้ว");
-                
-                curr.push(name); 
-                set(pRef, curr).then(() => {
-                    document.getElementById('newProfileName').value = "";
-                });
-            }).catch(e => alert("เกิดข้อผิดพลาด: " + e.message));
+            const name = document.getElementById('newProfileName').value.trim(); if(!name) return alert("กรุณาระบุชื่อ");
+            const uid = auth.currentUser.uid; const pRef = ref(database, `users_profiles/${uid}`);
+            onValue(pRef, (snap) => {
+                const curr = snap.val() || []; if(curr.length >= 5) return alert("สร้างได้สูงสุด 5 ชื่อ"); if(curr.includes(name)) return alert("มีชื่อนี้อยู่แล้ว");
+                curr.push(name); set(pRef, curr);
+            }, { onlyOnce: true });
+            document.getElementById('newProfileName').value = "";
         };
 
         window.selectProfile = function(pName) {
@@ -591,7 +582,8 @@
 
         window.handleLogout = function() { 
             if(auth.currentUser) {
-                const cleanEmail = getCleanKey(auth.currentUser.email);
+                const username = auth.currentUser.email.split('@')[0];
+                const cleanEmail = getCleanKey(username);
                 remove(ref(database, `online_users/${cleanEmail}`)); 
             }
             signOut(auth); 
@@ -698,7 +690,7 @@
 
         window.resetBoss = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
-            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.respawnAt || 0, owner: "" });
+            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.prevRespawn || 0, owner: "" });
             pushLog(`⚠️ RESET เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
         };
 
