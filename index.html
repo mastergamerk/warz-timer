@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WarZ Clan Boss Timer - Premium Tactical Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-main: #06090e;
+            --bg-card: rgba(13, 17, 23, 0.75);
+            --border-normal: #21262d;
+            --border-glow: #30363d;
+            --text-muted: #8b949e;
+            --color-primary: #58a6ff;
+            --color-danger: #ff4757;
+            --color-success: #2ed573;
+            --color-warning: #ffd32a;
+        }
+
+        body {
+            font-family: 'Chakra Petch', sans-serif;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(88, 166, 255, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(255, 71, 87, 0.04) 0%, transparent 50%);
+            color: #f0f6fc; margin: 0; padding: 30px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box;
+        }
+
+        .app-section { display: none; width: 100%; max-width: 420px; }
+        .app-section.active { display: block; animation: fadeIn 0.4s ease-out; }
+        #mainTimerSection.active { display: flex; flex-direction: column; align-items: center; max-width: 1250px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 👑 แถบเมนูด้านบนสุดสลับหน้าจอ */
+        .admin-nav-bar {
+            display: none; gap: 15px; width: 100%; max-width: 1230px; margin-bottom: 25px; border-bottom: 1px solid var(--border-normal); padding-bottom: 15px;
+        }
+        .btn-nav {
+            font-family: 'Chakra Petch', sans-serif; background-color: #161b22; color: var(--text-muted); border: 1px solid var(--border-normal); padding: 10px 20px; font-size: 1rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-nav.active {
+            color: #fff; border-color: var(--color-danger); background-color: rgba(255, 71, 87, 0.1); box-shadow: 0 0 10px rgba(255, 71, 87, 0.15);
+        }
+
+        .tab-content { display: none; width: 100%; }
+        .tab-content.active { display: flex; flex-direction: column; align-items: center; }
+
+        .auth-card { background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 8px; padding: 35px; backdrop-filter: blur(12px); box-shadow: 0 12px 32px rgba(0,0,0,0.7); border-top: 3px solid var(--color-primary); }
+        .auth-card.register-mode { border-top-color: var(--color-danger); }
+        .auth-card.profile-mode { border-top-color: var(--color-success); }
+
+        .auth-title { font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: 5px; text-align: center; letter-spacing: 2px; }
+        .auth-desc { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; }
+        
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #c9d1d9; margin-bottom: 8px; }
+        
+        .form-control {
+            font-family: 'Chakra Petch', sans-serif; width: 100%; padding: 12px 15px; background-color: #070a0e; color: #fff;
+            border: 1px solid var(--border-normal); border-radius: 4px; box-sizing: border-box; outline: none; font-size: 1rem;
+        }
+        .form-control:focus { border-color: var(--color-primary); box-shadow: 0 0 10px rgba(88, 166, 255, 0.15); }
+        
+        .btn-submit {
+            font-family: 'Chakra Petch', sans-serif; width: 100%; padding: 14px;
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(88, 166, 255, 0.03)); color: var(--color-primary);
+            border: 1px solid var(--color-primary); border-radius: 4px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-submit:hover { background: var(--color-primary); color: #fff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.3); }
+        
+        .auth-switch { text-align: center; margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); }
+        .auth-switch span { color: var(--color-primary); cursor: pointer; font-weight: 600; }
+
+        .profile-list { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+        .profile-item { background-color: rgba(7, 10, 14, 0.6); border: 1px solid var(--border-normal); padding: 14px 20px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .profile-name-text { font-size: 1.1rem; font-weight: 600; color: #f0f6fc; }
+
+        h1 { margin: 0; font-size: 2.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: linear-gradient(45deg, var(--color-danger), #ff6b81); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-badge { background-color: rgba(88, 166, 255, 0.1); color: #fff; border: 1px solid rgba(88, 166, 255, 0.3); padding: 6px 18px; border-radius: 4px; font-size: 0.95rem; margin-bottom: 25px; display: inline-block; font-weight: 600; }
+        
+        .server-selector { display: flex; gap: 15px; margin-bottom: 30px; }
+        .btn-server { font-family: 'Chakra Petch', sans-serif; background-color: rgba(31, 36, 44, 0.5); color: var(--text-muted); border: 1px solid var(--border-normal); padding: 14px 28px; font-size: 1.05rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.3s; }
+        .btn-server.active { color: #ffffff; background-color: rgba(255, 71, 87, 0.12); border-color: var(--color-danger); box-shadow: 0 0 15px rgba(255, 71, 87, 0.25); }
+
+        .location-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; max-width: 1100px; margin-bottom: 35px; }
+        @media (max-width: 768px) { .location-grid { grid-template-columns: repeat(2, 1fr); } }
+        .location-card { background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 4px; padding: 22px 15px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .location-card:hover { border-color: var(--color-primary); background-color: rgba(88, 166, 255, 0.03); transform: translateY(-2px); }
+        .location-card.active { border-color: var(--color-primary); background-color: rgba(88, 166, 255, 0.08); box-shadow: 0 0 20px rgba(88, 166, 255, 0.15); }
+        .location-icon { font-size: 2.2rem; margin-bottom: 12px; display: block; }
+        .location-name { font-weight: 600; font-size: 1rem; color: #c9d1d9; }
+
+        .current-view-title { font-size: 1.5rem; color: var(--color-primary); font-weight: 600; margin-bottom: 25px; }
+        .rooms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px; width: 100%; max-width: 1250px; padding: 10px; margin-bottom: 40px; }
+        
+        .room-box { background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 4px; padding: 25px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .room-box.counting { border-color: rgba(255, 71, 87, 0.7); background-color: rgba(28, 21, 23, 0.6); box-shadow: 0 0 15px rgba(255, 71, 87, 0.1); }
+        .room-box.spawn-flash { animation: tacticalFlash 2s infinite alternate; }
+        @keyframes tacticalFlash {
+            0% { border-color: var(--color-success); box-shadow: 0 0 20px rgba(46, 213, 115, 0.3); background-color: rgba(46, 213, 115, 0.05); }
+            50% { border-color: var(--color-warning); box-shadow: 0 0 20px rgba(255, 211, 42, 0.3); background-color: rgba(255, 211, 42, 0.05); }
+            100% { border-color: var(--color-danger); box-shadow: 0 0 20px rgba(255, 71, 87, 0.3); background-color: rgba(255, 71, 87, 0.05); }
+        }
+
+        .room-title { font-size: 1.1rem; font-weight: 600; color: #c9d1d9; margin-bottom: 18px; letter-spacing: 1.5px; }
+        
+        /* 🛠️ ปรับฟอนต์ตัวเลขดิจิตอล ล็อกแถวตรงกันเป๊ะ และแสดงผลสวยงามเมื่อ READY */
+        .room-timer { 
+            font-size: 2.6rem; 
+            font-weight: 700; 
+            color: rgba(88, 166, 255, 0.25); 
+            margin-bottom: 12px; 
+            letter-spacing: 2px; 
+            font-family: 'Chakra Petch', sans-serif; 
+            display: inline-block; 
+            width: 100%;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .room-timer.counting-text { color: #ff5e6c; }
+        .room-timer.spawned-text { color: var(--color-success); font-size: 2rem; letter-spacing: 0px; }
+
+        .progress-container { width: 100%; height: 5px; background-color: #161b22; margin-bottom: 20px; border-radius: 10px; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4757, #ff6b81); box-shadow: 0 0 8px #ff4757; transition: width 1s linear; }
+        .divider { width: 100%; border: 0; border-top: 1px solid rgba(48, 54, 61, 0.5); margin-bottom: 18px; }
+        
+        .btn-group { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; width: 100%; }
+        .btn-action { font-family: 'Chakra Petch', sans-serif; background-color: #21262d; color: #8b949e; border: 1px solid #30363d; padding: 11px 0; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-action:hover:not(:disabled) { background-color: #30363d; color: #f0f6fc; }
+        .btn-spawn-style { color: var(--color-success); border: 1px solid rgba(46, 213, 115, 0.4); background-color: transparent; }
+        .btn-spawn-style:hover:not(:disabled) { background-color: rgba(46, 213, 115, 0.1) !important; border-color: var(--color-success) !important; }
+        .btn-reset-style:hover:not(:disabled) { border-color: var(--color-danger) !important; background-color: rgba(255, 71, 87, 0.08) !important; color: var(--color-danger) !important; }
+        .btn-action:disabled { opacity: 0.15; cursor: not-allowed; border-color: var(--border-normal) !important; color: var(--text-muted) !important; background-color: transparent !important; }
+
+        .log-container { width: 100%; max-width: 1230px; background-color: rgba(13, 17, 23, 0.9); border: 1px solid var(--border-normal); border-radius: 6px; padding: 22px; box-sizing: border-box; margin-bottom: 30px; }
+        .log-header { font-size: 1.2rem; font-weight: 600; color: var(--color-warning); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .log-box-list { max-height: 220px; overflow-y: auto; font-family: monospace; font-size: 0.95rem; color: #c9d1d9; display: flex; flex-direction: column; gap: 6px; }
+        .log-item { padding: 6px 8px; border-bottom: 1px solid rgba(48,54,61,0.2); }
+        .log-time { color: var(--text-muted); margin-right: 8px; }
+
+        .admin-panel-box { width: 100%; max-width: 1230px; background-color: #0b0e14; border: 1px solid #30363d; border-radius: 6px; padding: 30px; box-sizing: border-box; }
+        .admin-header { font-size: 1.5rem; font-weight: bold; color: var(--color-danger); margin-bottom: 20px; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th, .admin-table td { padding: 15px 12px; border-bottom: 1px solid #21262d; }
+        .admin-table th { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+        .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; display: inline-block; }
+        .status-pending { background-color: rgba(255, 211, 42, 0.15); color: var(--color-warning); border: 1px solid var(--color-warning); }
+        .status-active { background-color: rgba(46, 213, 115, 0.15); color: var(--color-success); border: 1px solid var(--color-success); }
+        .status-banned { background-color: rgba(255, 71, 87, 0.15); color: var(--color-danger); border: 1px solid var(--color-danger); }
+        .admin-btn { font-family: 'Chakra Petch', sans-serif; background-color: #21262d; border: 1px solid #30363d; color: #fff; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-right: 6px; font-weight: 600; transition: all 0.2s; }
+        .admin-btn.btn-approve { border-color: var(--color-success); color: var(--color-success); }
+        .admin-btn.btn-approve:hover { background-color: var(--color-success); color: #fff; }
+        .admin-btn.btn-ban { border-color: var(--color-danger); color: var(--color-danger); }
+        .admin-btn.btn-ban:hover { background-color: var(--color-danger); color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="loginSection" class="app-section auth-card">
+        <div class="auth-title">TACTICAL LOGIN</div>
+        <div class="auth-desc">ระบบจับเวลาบอสแคลน ยืนยันตัวตนเพื่อเข้าใช้งาน</div>
+        <div class="form-group">
+            <label>USERNAME</label>
+            <input type="text" id="loginUser" class="form-control" placeholder="ระบุชื่อผู้ใช้">
+        </div>
+        <div class="form-group">
+            <label>PASSWORD</label>
+            <input type="password" id="loginPass" class="form-control" placeholder="••••••••">
+        </div>
+        <button class="btn-submit" onclick="handleLogin()">LOG IN</button>
+        <div class="auth-switch">ยังไม่มีบัญชีแคลน? <span onclick="showSection('registerSection')">สมัครสมาชิก</span></div>
+    </div>
+
+    <div id="registerSection" class="app-section auth-card register-mode">
+        <div class="auth-title">REGISTRATION</div>
+        <div class="auth-desc">สร้างบัญชีใหม่เพื่อร่วมทีมจับเวลาแบบ Real-time</div>
+        <div class="form-group">
+            <label>USERNAME</label>
+            <input type="text" id="regUser" class="form-control" placeholder="ตั้งชื่อผู้ใช้ใหม่">
+        </div>
+        <div class="form-group">
+            <label>PASSWORD</label>
+            <input type="password" id="regPass" class="form-control" placeholder="ตั้งรหัสผ่าน">
+        </div>
+        <div class="form-group">
+            <label>CONFIRM PASSWORD</label>
+            <input type="password" id="regConfirmPass" class="form-control" placeholder="ยืนยันรหัสผ่านอีกครั้ง">
+        </div>
+        <button class="btn-submit" style="color:var(--color-danger); border-color:var(--color-danger);" onclick="handleSignUp()">CREATE ACCOUNT</button>
+        <div class="auth-switch">มีบัญชีอยู่แล้ว? <span onclick="showSection('loginSection')">เข้าสู่ระบบ</span></div>
+    </div>
+
+    <div id="profileSection" class="app-section auth-card profile-mode">
+        <div class="auth-title">SELECT PROFILE</div>
+        <div class="auth-desc" id="profileCountText">เลือกชื่อผู้ใช้งานของท่าน (0/5 ชื่อ)</div>
+        
+        <div class="profile-list" id="profilesList"></div>
+
+        <div id="createProfileForm" style="margin-top: 20px; border-top: 1px solid var(--border-normal); padding-top: 15px;">
+            <div class="form-group">
+                <label>สร้างชื่อตัวละครใหม่</label>
+                <input type="text" id="newProfileName" class="form-control" placeholder="พิมพ์ชื่อที่ต้องการ">
+            </div>
+            <button class="btn-submit" style="color:var(--color-success); border-color:var(--color-success);" onclick="handleCreateProfile()">+ CREATE NEW NAME</button>
+        </div>
+        <br>
+        <button class="btn-action" style="width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="handleLogout()">LOGOUT</button>
+    </div>
+
+    <div id="mainTimerSection" class="app-section">
+        
+        <div class="admin-nav-bar" id="adminNavBar">
+            <button class="btn-nav active" id="navBtnTimer" onclick="switchAdminTab('timer')">⚔️ หน้าจัดการเวลาบอส</button>
+            <button class="btn-nav" id="navBtnAdmin" onclick="switchAdminTab('admin')">👑 แผงควบคุมแอดมิน (CONTROL PANEL)</button>
+        </div>
+
+        <div id="tabTimerContent" class="tab-content active">
+            <h1>WARZ BOSS TIMER</h1>
+            <div class="user-badge" id="activeUserBadge">👤 OPERATOR: Connecting...</div>
+
+            <div class="server-selector">
+                <button class="btn-server active" onclick="switchServer('premium', this)">PREMIUM SERVER (50ห้อง)</button>
+                <button class="btn-server" onclick="switchServer('official', this)">OFFICIAL SERVER (30ห้อง)</button>
+            </div>
+
+            <div class="location-grid">
+                <div class="location-card active" onclick="switchLocation('norad', this)">🏢 <div class="location-name">Norad Military Base</div></div>
+                <div class="location-card" onclick="switchLocation('ridgeway', this)">✈️ <div class="location-name">Ridgeway Airport</div></div>
+                <div class="location-card" onclick="switchLocation('crystal', this)">🏠 <div class="location-name">Crystal Lake resort</div></div>
+                <div class="location-card" onclick="switchLocation('campos', this)">🌆 <div class="location-name">Campos City</div></div>
+            </div>
+
+            <div class="current-view-title" id="currentViewText">📍 Norad Military Base</div>
+            <div class="rooms-grid" id="roomsGrid"></div>
+
+            <div class="log-container">
+                <div class="log-header">📟 LIVE ACTIVITY LOGS</div>
+                <div class="log-box-list" id="logsBoxList">
+                    <div style="color:var(--text-muted)">กำลังเชื่อมต่อฐานข้อมูล...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabAdminContent" class="tab-content">
+            <div class="admin-panel-box">
+                <div class="admin-header">👑 GUILD ADMINISTRATOR CONTROL PANEL</div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>สถานะสิทธิ์การเข้าใช้งานปัจจุบัน</th>
+                            <th>การจัดการเปิดสิทธิ์ / BAN ถาวร</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUserTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <br>
+        <button class="btn-action" style="max-width:220px; width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="location.reload()">สลับตัวละคร / ออกระบบ</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCTfFpUNt0LbjBm5-fyEEkMNEdDL3ytEBc",
+            authDomain: "arz-boss-tracker.firebaseapp.com",
+            databaseURL: "https://arz-boss-tracker-default-rtdb.firebaseio.com",
+            projectId: "arz-boss-tracker",
+            storageBucket: "arz-boss-tracker.firebasestorage.app",
+            messagingSenderId: "437165192384",
+            appId: "1:437165192384:web:ed80fa9a9c6f2cf1d9e925",
+            measurementId: "G-7L5S5K6PRX"
+        };
+
+        const BOSS_COOLDOWN = 1 * 60 * 60 * 1000; 
+        const UNDO_WINDOW = 5 * 60 * 1000;       
+        const FLASH_DURATION = 30 * 1000;       
+        
+        let database = null; let auth = null;
+        let currentServer = "premium"; let currentLocation = "norad";
+        let serverData = { premium: {}, official: {} };
+        let playedAlerts = {}; let activeProfileName = "Unknown";
+        let isAdminAccount = false;
+
+        const locationNames = { norad: "Norad Military Base", ridgeway: "Ridgeway Airport", crystal: "Crystal Lake resort", campos: "Campos City" };
+
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        window.switchAdminTab = function(tabName) {
+            document.querySelectorAll('.btn-nav').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tabName === 'timer') {
+                document.getElementById('navBtnTimer').classList.add('active');
+                document.getElementById('tabTimerContent').classList.add('active');
+                buildRoomsGrid(); 
+            } else if (tabName === 'admin') {
+                document.getElementById('navBtnAdmin').classList.add('active');
+                document.getElementById('tabAdminContent').classList.add('active');
+                loadAdminUserPanel(); 
+            }
+        }
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            database = getDatabase(app); auth = getAuth(app);
+            
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    checkUserStatus(user);
+                } else {
+                    document.getElementById('adminNavBar').style.display = 'none';
+                    showSection('loginSection');
+                }
+            });
+        } catch (e) { alert("เกิดข้อผิดพลาดในการโหลดระบบ: " + e.message); }
+
+        function checkUserStatus(user) {
+            const cleanEmail = user.email.replace(/\./g, '_').replace('@', '_');
+            
+            if(user.email === "admin@clan.com") {
+                isAdminAccount = true;
+                document.getElementById('adminNavBar').style.display = 'flex'; 
+                switchAdminTab('timer'); 
+                loadProfiles(user.uid);
+                return;
+            }
+
+            onValue(ref(database, `users_status/${cleanEmail}`), (snapshot) => {
+                const uStatus = snapshot.val();
+                if (!uStatus || uStatus.status === "pending") {
+                    alert("⚠️ บัญชีของท่านอยู่ระหว่าง 'รอแอดมินยืนยันสิทธิ์' กรุณาแจ้งแอดมินกิล์ดเปิดระบบให้ก่อนครับ");
+                    signOut(auth);
+                } else if (uStatus.status === "banned") {
+                    alert("❌ บัญชีนี้ถูกระงับการใช้งาน (BAN) ถาวร!");
+                    signOut(auth);
+                } else {
+                    isAdminAccount = false;
+                    document.getElementById('adminNavBar').style.display = 'none'; 
+                    switchAdminTab('timer');
+                    loadProfiles(user.uid);
+                }
+            });
+        }
+
+        window.handleSignUp = function() {
+            const user = document.getElementById('regUser').value.trim();
+            const pass = document.getElementById('regPass').value;
+            if(pass !== document.getElementById('regConfirmPass').value) return alert("รหัสผ่านไม่ตรงกัน");
+            
+            const simulatedEmail = `${user}@clan.com`;
+            const cleanEmail = simulatedEmail.replace(/\./g, '_').replace('@', '_');
+
+            createUserWithEmailAndPassword(auth, simulatedEmail, pass).then(() => {
+                set(ref(database, `users_status/${cleanEmail}`), { username: user, email: simulatedEmail, status: "pending" });
+                alert("สมัครสมาชิกสำเร็จ! กรุณาแจ้งให้แอดมินกดอนุมัติถาวรก่อนล็อกอินเข้าใช้งาน");
+                signOut(auth);
+            }).catch(e => alert("สมัครไม่สำเร็จ: " + e.message));
+        };
+
+        window.handleLogin = function() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            
+            if(user === "admin" && pass === "admin123") {
+                signInWithEmailAndPassword(auth, "admin@clan.com", "admin123").catch(() => {
+                    createUserWithEmailAndPassword(auth, "admin@clan.com", "admin123").then(() => {
+                        const cleanEmail = "admin_clan_com";
+                        set(ref(database, `users_status/${cleanEmail}`), { username: "admin", email: "admin@clan.com", status: "active" });
+                    });
+                });
+                return;
+            }
+            signInWithEmailAndPassword(auth, `${user}@clan.com`, pass).catch(() => alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"));
+        };
+
+        function loadAdminUserPanel() {
+            onValue(ref(database, `users_status`), (snapshot) => {
+                const tbody = document.getElementById('adminUserTableBody');
+                tbody.innerHTML = ""; const data = snapshot.val(); if (!data) return;
+
+                Object.keys(data).forEach(key => {
+                    const u = data[key]; if (u.email === "admin@clan.com") return;
+
+                    const tr = document.createElement('tr');
+                    let badgeClass = "status-pending"; let badgeText = "รอยืนยันสิทธิ์";
+                    if(u.status === "active") { badgeClass = "status-active"; badgeText = "ใช้งานได้ถาวร"; }
+                    if(u.status === "banned") { badgeClass = "status-banned"; badgeText = "BAN ถาวร"; }
+
+                    tr.innerHTML = `
+                        <td><b>${u.username}</b></td>
+                        <td><span class="status-badge ${badgeClass}">${badgeText}</span></td>
+                        <td>
+                            <button class="admin-btn btn-approve" onclick="updateUserStatus('${key}', 'active')">อนุมัติถาวร</button>
+                            <button class="admin-btn btn-ban" onclick="updateUserStatus('${key}', 'banned')">BAN ผู้ใช้</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
+
+        window.updateUserStatus = function(userKey, newStatus) {
+            update(ref(database, `users_status/${userKey}`), { status: newStatus }).catch(e => alert(e.message));
+        };
+
+        // 🛠️ ปรับแก้โค้ดให้อ่านฐานข้อมูลโปรไฟล์แยกเด็ดขาดตาม UID ของผู้ใช้งานที่กำลังล็อกอินอยู่
+        function loadProfiles(uid) {
+            showSection('profileSection');
+            onValue(ref(database, `users_profiles/${uid}`), (snapshot) => {
+                const listEl = document.getElementById('profilesList'); listEl.innerHTML = "";
+                const profiles = snapshot.val() || [];
+                profiles.forEach(pName => {
+                    const item = document.createElement('div'); item.className = "profile-item";
+                    item.innerHTML = `<span class="profile-name-text">🎮 ${pName}</span> <button class="btn-action" style="width:auto; padding:5px 15px;" onclick="selectProfile('${pName}')">เลือก</button>`;
+                    listEl.appendChild(item);
+                });
+                document.getElementById('createProfileForm').style.display = profiles.length >= 5 ? 'none' : 'block';
+                document.getElementById('profileCountText').innerText = `เลือกชื่อผู้ใช้งานของท่าน (${profiles.length}/5 ชื่อ)`;
+            });
+        }
+
+        // 🛠️ ปรับแก้โค้ดให้บันทึกชื่อโปรไฟล์แยกเด็ดขาดตาม UID ของตัวเอง ป้องกันไม่ให้ปนกับคนอื่น
+        window.handleCreateProfile = function() {
+            const name = document.getElementById('newProfileName').value.trim(); if(!name) return alert("กรุณาระบุชื่อ");
+            const uid = auth.currentUser.uid; const pRef = ref(database, `users_profiles/${uid}`);
+            onValue(pRef, (snap) => {
+                const curr = snap.val() || []; if(curr.length >= 5) return alert("สร้างได้สูงสุด 5 ชื่อ"); if(curr.includes(name)) return alert("มีชื่อนี้อยู่แล้ว");
+                curr.push(name); set(pRef, curr);
+            }, { onlyOnce: true });
+            document.getElementById('newProfileName').value = "";
+        };
+
+        window.selectProfile = function(pName) {
+            activeProfileName = pName;
+            document.getElementById('activeUserBadge').innerText = `👤 OPERATOR: ${activeProfileName} ${isAdminAccount ? '[ADMIN]' : ''}`;
+            showSection('mainTimerSection');
+            
+            onValue(ref(database, `boss`), (snap) => { if(snap.val()) serverData = snap.val(); });
+            
+            onValue(ref(database, `logs`), (snap) => {
+                const logBox = document.getElementById('logsBoxList'); logBox.innerHTML = ""; const arr = []; 
+                snap.forEach(c => { arr.unshift(c.val()); }); 
+                if(arr.length === 0) logBox.innerHTML = '<div style="color:var(--text-muted)">ไม่มีความเคลื่อนไหวล่าสุดในขณะนี้...</div>';
+                arr.slice(0, 30).forEach(l => {
+                    logBox.innerHTML += `<div class="log-item"><span class="log-time">[${l.time}]</span> <span style="color:var(--color-primary); font-weight:600;">${l.user}</span>: ${l.action}</div>`;
+                });
+            });
+            buildRoomsGrid();
+        };
+
+        window.handleLogout = function() { signOut(auth); };
+        function pushLog(actionText) { const timeStr = new Date().toLocaleTimeString('th-TH'); push(ref(database, `logs`), { time: timeStr, user: activeProfileName, action: actionText }); }
+
+        function playBeep(type) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                if (type === '10min') { oscillator.frequency.setValueAtTime(480, audioCtx.currentTime); oscillator.start(); setTimeout(() => oscillator.stop(), 120); } 
+                else if (type === '5min') { oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); oscillator.start(); setTimeout(() => oscillator.stop(), 120); } 
+                else if (type === 'spawn') { oscillator.frequency.setValueAtTime(780, audioCtx.currentTime); oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8); setTimeout(() => oscillator.stop(), 800); }
+            } catch (e) {}
+        }
+
+        function buildRoomsGrid() {
+            if(isAdminAccount && document.getElementById('navBtnAdmin').classList.contains('active')) return;
+
+            const roomsContainer = document.getElementById('roomsGrid'); if(!roomsContainer) return; roomsContainer.innerHTML = ""; const maxRooms = (currentServer === "premium") ? 50 : 30; const serverPrefix = currentServer === 'premium' ? 'TH PREMIUM SERVER' : 'TH SERVER';
+            document.getElementById('currentViewText').innerText = `📍 ${locationNames[currentLocation]}`;
+            for (let i = 1; i <= maxRooms; i++) {
+                const roomStr = i.toString().padStart(3, '0'); const roomBox = document.createElement('div'); roomBox.className = "room-box"; roomBox.id = `box_room_${i}`;
+                roomBox.innerHTML = `
+                    <div class="room-title">${serverPrefix} ${roomStr}</div>
+                    <div class="room-timer" id="timer_room_${i}">00:00:00</div>
+                    <div class="progress-container"><div class="progress-bar" id="progress_room_${i}"></div></div><div class="divider"></div>
+                    <div class="btn-group">
+                        <button class="btn-action btn-spawn-style" id="btn_spawn_${i}" onclick="spawnBoss(${i})">SPAWN</button>
+                        <button class="btn-action" id="btn_undo_${i}" onclick="undoReset(${i})" disabled>UNDO</button>
+                        <button class="btn-action btn-reset-style" id="btn_reset_${i}" onclick="resetBoss(${i})" disabled>RESET</button>
+                    </div>
+                `;
+                roomsContainer.appendChild(roomBox);
+            }
+            updateTimersOnly();
+        }
+
+        function updateTimersOnly() {
+            if(isAdminAccount && document.getElementById('navBtnAdmin').classList.contains('active')) return;
+
+            const maxRooms = (currentServer === "premium") ? 50 : 30; const now = new Date().getTime();
+            for (let i = 1; i <= maxRooms; i++) {
+                const boxEl = document.getElementById(`box_room_${i}`); const timerEl = document.getElementById(`timer_room_${i}`); const progressEl = document.getElementById(`progress_room_${i}`);
+                const btnSpawn = document.getElementById(`btn_spawn_${i}`); const btnUndo = document.getElementById(`btn_undo_${i}`); const btnReset = document.getElementById(`btn_reset_${i}`);
+                if (!timerEl) continue;
+
+                const roomData = serverData[currentServer]?.[currentLocation]?.[`room_${i}`] || {}; const targetTime = roomData.respawnAt || 0; const updatedAt = roomData.updatedAt || 0; const timeLeft = targetTime - now;
+                if (roomData.resetAt && (now - roomData.resetAt < UNDO_WINDOW) && roomData.prevRespawn) { btnUndo.disabled = false; } else { btnUndo.disabled = true; }
+                const alertKey = `${currentServer}_${currentLocation}_room_${i}`;
+
+                if (timeLeft > 0) {
+                    boxEl.className = "room-box counting"; const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    timerEl.innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`; 
+                    timerEl.className = "room-timer counting-text";
+                    
+                    const percent = (targetTime - updatedAt) > 0 ? ((timeLeft / (targetTime - updatedAt)) * 100) : 0; progressEl.style.width = `${percent}%`;
+                    if (minutes === 10 && seconds === 0 && !playedAlerts[alertKey + '_10m']) { playBeep('10min'); playedAlerts[alertKey + '_10m'] = true; }
+                    if (minutes === 5 && seconds === 0 && !playedAlerts[alertKey + '_5m']) { playBeep('5min'); playedAlerts[alertKey + '_5m'] = true; }
+                    
+                    btnSpawn.disabled = true;
+                    
+                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) {
+                        btnReset.disabled = true; 
+                    } else {
+                        btnReset.disabled = false; 
+                    }
+                } else if (targetTime > 0 && timeLeft <= 0 && (now - targetTime < FLASH_DURATION)) {
+                    boxEl.className = "room-box spawn-flash"; timerEl.innerText = "บอสเกิดแล้ว!!"; timerEl.className = "room-timer spawned-text"; progressEl.style.width = "0%";
+                    if (!playedAlerts[alertKey + '_spawn']) { playBeep('spawn'); playedAlerts[alertKey + '_spawn'] = true; }
+                    btnSpawn.disabled = false; btnReset.disabled = true;
+                } else {
+                    boxEl.className = "room-box"; 
+                    timerEl.innerText = "00:00:00"; 
+                    timerEl.className = "room-timer";
+                    progressEl.style.width = "0%";
+                    delete playedAlerts[alertKey + '_10m']; delete playedAlerts[alertKey + '_5m']; delete playedAlerts[alertKey + '_spawn'];
+                    btnSpawn.disabled = false; btnReset.disabled = true;
+                }
+            }
+        }
+
+        window.spawnBoss = function(roomNumber) { const now = new Date().getTime(); const nextRespawn = now + BOSS_COOLDOWN; saveData(roomNumber, { respawnAt: nextRespawn, updatedAt: now, resetAt: null, prevRespawn: null }); pushLog(`🎯 SPAWN บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); };
+        window.resetBoss = function(roomNumber) { const now = new Date().getTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {}; saveData(roomNumber, { respawnAt: 0, updatedAt: now, resetAt: now, prevRespawn: currentRoomData.respawnAt || 0 }); pushLog(`⚠️ RESET บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); };
+        window.undoReset = function(roomNumber) { const now = new Date().getTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {}; if (currentRoomData.prevRespawn) { saveData(roomNumber, { respawnAt: currentRoomData.prevRespawn, updatedAt: now, resetAt: null, prevRespawn: null }); pushLog(`🔄 UNDO เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); } };
+
+        function saveData(roomNumber, dataObj) {
+            if (!serverData[currentServer]) serverData[currentServer] = {}; if (!serverData[currentServer][currentLocation]) serverData[currentServer][currentLocation] = {};
+            serverData[currentServer][currentLocation][`room_${roomNumber}`] = dataObj; set(ref(database, `boss/${currentServer}/${currentLocation}/room_${roomNumber}`), dataObj); updateTimersOnly();
+        }
+
+        window.switchServer = function(serverType, element) { currentServer = serverType; document.querySelectorAll('.btn-server').forEach(btn => btn.classList.remove('active')); element.classList.add('active'); buildRoomsGrid(); };
+        window.switchLocation = function(locationType, element) { currentLocation = locationType; document.querySelectorAll('.location-card').forEach(card => card.classList.remove('active')); element.classList.add('active'); buildRoomsGrid(); };
+
+        setInterval(updateTimersOnly, 1000);
+    </script>
+</body>
+</html>
