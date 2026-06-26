@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WarZ Clan Boss Timer - Premium Tactical Edition</title>
+    <title>WarZ Clan Boss Timer - Global Sync Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +37,6 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 👑 แถบเมนูด้านบนสุดสลับหน้าจอ */
         .admin-nav-bar {
             display: none; gap: 15px; width: 100%; max-width: 1230px; margin-bottom: 25px; border-bottom: 1px solid var(--border-normal); padding-bottom: 15px;
         }
@@ -110,7 +109,6 @@
 
         .room-title { font-size: 1.1rem; font-weight: 600; color: #c9d1d9; margin-bottom: 18px; letter-spacing: 1.5px; }
         
-        /* 🛠️ ปรับฟอนต์ตัวเลขดิจิตอล ล็อกแถวตรงกันเป๊ะ และแสดงผลสวยงามเมื่อ READY */
         .room-timer { 
             font-size: 2.6rem; 
             font-weight: 700; 
@@ -162,6 +160,7 @@
 </head>
 <body>
 
+    <!-- 1. หน้าเข้าสู่ระบบ (Login) -->
     <div id="loginSection" class="app-section auth-card">
         <div class="auth-title">TACTICAL LOGIN</div>
         <div class="auth-desc">ระบบจับเวลาบอสแคลน ยืนยันตัวตนเพื่อเข้าใช้งาน</div>
@@ -177,6 +176,7 @@
         <div class="auth-switch">ยังไม่มีบัญชีแคลน? <span onclick="showSection('registerSection')">สมัครสมาชิก</span></div>
     </div>
 
+    <!-- 2. หน้าสมัครสมาชิก (Register) -->
     <div id="registerSection" class="app-section auth-card register-mode">
         <div class="auth-title">REGISTRATION</div>
         <div class="auth-desc">สร้างบัญชีใหม่เพื่อร่วมทีมจับเวลาแบบ Real-time</div>
@@ -196,6 +196,7 @@
         <div class="auth-switch">มีบัญชีอยู่แล้ว? <span onclick="showSection('loginSection')">เข้าสู่ระบบ</span></div>
     </div>
 
+    <!-- 3. หน้าจัดการโปรไฟล์ชื่อผู้ใช้งาน -->
     <div id="profileSection" class="app-section auth-card profile-mode">
         <div class="auth-title">SELECT PROFILE</div>
         <div class="auth-desc" id="profileCountText">เลือกชื่อผู้ใช้งานของท่าน (0/5 ชื่อ)</div>
@@ -213,6 +214,7 @@
         <button class="btn-action" style="width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="handleLogout()">LOGOUT</button>
     </div>
 
+    <!-- 4. หน้าจอหลักแอปพลิเคชันกิลด์ -->
     <div id="mainTimerSection" class="app-section">
         
         <div class="admin-nav-bar" id="adminNavBar">
@@ -220,6 +222,7 @@
             <button class="btn-nav" id="navBtnAdmin" onclick="switchAdminTab('admin')">👑 แผงควบคุมแอดมิน (CONTROL PANEL)</button>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 1: หน้าจับเวลาบอส -->
         <div id="tabTimerContent" class="tab-content active">
             <h1>WARZ BOSS TIMER</h1>
             <div class="user-badge" id="activeUserBadge">👤 OPERATOR: Connecting...</div>
@@ -247,6 +250,7 @@
             </div>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 2: หน้าแผงควบคุมแอดมินหลังบ้าน -->
         <div id="tabAdminContent" class="tab-content">
             <div class="admin-panel-box">
                 <div class="admin-header">👑 GUILD ADMINISTRATOR CONTROL PANEL</div>
@@ -269,7 +273,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -292,6 +296,9 @@
         let serverData = { premium: {}, official: {} };
         let playedAlerts = {}; let activeProfileName = "Unknown";
         let isAdminAccount = false;
+        
+        // 🛠️ ตัวแปรเก็บค่าความต่างของเวลาเครื่องกับเซิร์ฟเวอร์ Firebase (Time Offset)
+        let serverTimeOffset = 0; 
 
         const locationNames = { norad: "Norad Military Base", ridgeway: "Ridgeway Airport", crystal: "Crystal Lake resort", campos: "Campos City" };
 
@@ -319,6 +326,11 @@
             const app = initializeApp(firebaseConfig);
             database = getDatabase(app); auth = getAuth(app);
             
+            // 🛠️ เปิดระบบจูนนิ่งเวลาให้ตรงกับเซิร์ฟเวอร์กลางโดยอัตโนมัติ (Google/Firebase Server Sync)
+            onValue(ref(database, ".info/serverTimeOffset"), (snapshot) => {
+                serverTimeOffset = snapshot.val() || 0;
+            });
+
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     checkUserStatus(user);
@@ -328,6 +340,11 @@
                 }
             });
         } catch (e) { alert("เกิดข้อผิดพลาดในการโหลดระบบ: " + e.message); }
+
+        // ฟังก์ชันรับค่าเวลาปัจจุบันที่จูนกับเซิร์ฟเวอร์กลางแล้ว
+        function getSyncedCurrentTime() {
+            return new Date().getTime() + serverTimeOffset;
+        }
 
         function checkUserStatus(user) {
             const cleanEmail = user.email.replace(/\./g, '_').replace('@', '_');
@@ -418,7 +435,6 @@
             update(ref(database, `users_status/${userKey}`), { status: newStatus }).catch(e => alert(e.message));
         };
 
-        // 🛠️ ปรับแก้โค้ดให้อ่านฐานข้อมูลโปรไฟล์แยกเด็ดขาดตาม UID ของผู้ใช้งานที่กำลังล็อกอินอยู่
         function loadProfiles(uid) {
             showSection('profileSection');
             onValue(ref(database, `users_profiles/${uid}`), (snapshot) => {
@@ -434,7 +450,6 @@
             });
         }
 
-        // 🛠️ ปรับแก้โค้ดให้บันทึกชื่อโปรไฟล์แยกเด็ดขาดตาม UID ของตัวเอง ป้องกันไม่ให้ปนกับคนอื่น
         window.handleCreateProfile = function() {
             const name = document.getElementById('newProfileName').value.trim(); if(!name) return alert("กรุณาระบุชื่อ");
             const uid = auth.currentUser.uid; const pRef = ref(database, `users_profiles/${uid}`);
@@ -482,9 +497,9 @@
             const roomsContainer = document.getElementById('roomsGrid'); if(!roomsContainer) return; roomsContainer.innerHTML = ""; const maxRooms = (currentServer === "premium") ? 50 : 30; const serverPrefix = currentServer === 'premium' ? 'TH PREMIUM SERVER' : 'TH SERVER';
             document.getElementById('currentViewText').innerText = `📍 ${locationNames[currentLocation]}`;
             for (let i = 1; i <= maxRooms; i++) {
-                const roomStr = i.toString().padStart(3, '0'); const roomBox = document.createElement('div'); roomBox.className = "room-box"; roomBox.id = `box_room_${i}`;
+                const roomBox = document.createElement('div'); roomBox.className = "room-box"; roomBox.id = `box_room_${i}`;
                 roomBox.innerHTML = `
-                    <div class="room-title">${serverPrefix} ${roomStr}</div>
+                    <div class="room-title">${serverPrefix} ${i.toString().padStart(3, '0')}</div>
                     <div class="room-timer" id="timer_room_${i}">00:00:00</div>
                     <div class="progress-container"><div class="progress-bar" id="progress_room_${i}"></div></div><div class="divider"></div>
                     <div class="btn-group">
@@ -501,7 +516,10 @@
         function updateTimersOnly() {
             if(isAdminAccount && document.getElementById('navBtnAdmin').classList.contains('active')) return;
 
-            const maxRooms = (currentServer === "premium") ? 50 : 30; const now = new Date().getTime();
+            const maxRooms = (currentServer === "premium") ? 50 : 30; 
+            // 🛠️ ดึงเวลาปัจจุบันที่ถูก Sync ตรงกับเซิร์ฟเวอร์กลางกลางแล้วเด็ดขาด
+            const now = getSyncedCurrentTime(); 
+            
             for (let i = 1; i <= maxRooms; i++) {
                 const boxEl = document.getElementById(`box_room_${i}`); const timerEl = document.getElementById(`timer_room_${i}`); const progressEl = document.getElementById(`progress_room_${i}`);
                 const btnSpawn = document.getElementById(`btn_spawn_${i}`); const btnUndo = document.getElementById(`btn_undo_${i}`); const btnReset = document.getElementById(`btn_reset_${i}`);
@@ -522,30 +540,60 @@
                     if (minutes === 5 && seconds === 0 && !playedAlerts[alertKey + '_5m']) { playBeep('5min'); playedAlerts[alertKey + '_5m'] = true; }
                     
                     btnSpawn.disabled = true;
-                    
-                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) {
-                        btnReset.disabled = true; 
-                    } else {
-                        btnReset.disabled = false; 
-                    }
+                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) { btnReset.disabled = true; } else { btnReset.disabled = false; }
                 } else if (targetTime > 0 && timeLeft <= 0 && (now - targetTime < FLASH_DURATION)) {
                     boxEl.className = "room-box spawn-flash"; timerEl.innerText = "บอสเกิดแล้ว!!"; timerEl.className = "room-timer spawned-text"; progressEl.style.width = "0%";
                     if (!playedAlerts[alertKey + '_spawn']) { playBeep('spawn'); playedAlerts[alertKey + '_spawn'] = true; }
                     btnSpawn.disabled = false; btnReset.disabled = true;
                 } else {
-                    boxEl.className = "room-box"; 
-                    timerEl.innerText = "00:00:00"; 
-                    timerEl.className = "room-timer";
-                    progressEl.style.width = "0%";
+                    boxEl.className = "room-box"; timerEl.innerText = "00:00:00"; timerEl.className = "room-timer"; progressEl.style.width = "0%";
                     delete playedAlerts[alertKey + '_10m']; delete playedAlerts[alertKey + '_5m']; delete playedAlerts[alertKey + '_spawn'];
                     btnSpawn.disabled = false; btnReset.disabled = true;
                 }
             }
         }
 
-        window.spawnBoss = function(roomNumber) { const now = new Date().getTime(); const nextRespawn = now + BOSS_COOLDOWN; saveData(roomNumber, { respawnAt: nextRespawn, updatedAt: now, resetAt: null, prevRespawn: null }); pushLog(`🎯 SPAWN บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); };
-        window.resetBoss = function(roomNumber) { const now = new Date().getTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {}; saveData(roomNumber, { respawnAt: 0, updatedAt: now, resetAt: now, prevRespawn: currentRoomData.respawnAt || 0 }); pushLog(`⚠️ RESET บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); };
-        window.undoReset = function(roomNumber) { const now = new Date().getTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {}; if (currentRoomData.prevRespawn) { saveData(roomNumber, { respawnAt: currentRoomData.prevRespawn, updatedAt: now, resetAt: null, prevRespawn: null }); pushLog(`🔄 UNDO เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`); } };
+        // 🛠️ อัปเดตฟังก์ชันปุ่มกดให้บันทึกเวลาโดยอิงเวลามาตรฐานสากลของเซิร์ฟเวอร์ (Server Timestamp)
+        window.spawnBoss = function(roomNumber) {
+            const nowEstimate = getSyncedCurrentTime();
+            const nextRespawn = nowEstimate + BOSS_COOLDOWN;
+            
+            // ส่งค่าขึ้น Firebase ให้ใช้เวลากลางตัวจริงคำนวณบอสเกิดถัดไป
+            saveData(roomNumber, { 
+                respawnAt: nextRespawn, 
+                updatedAt: nowEstimate, 
+                resetAt: null, 
+                prevRespawn: null 
+            });
+            pushLog(`🎯 SPAWN บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
+        };
+
+        window.resetBoss = function(roomNumber) {
+            const nowEstimate = getSyncedCurrentTime();
+            const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
+            
+            saveData(roomNumber, { 
+                respawnAt: 0, 
+                updatedAt: nowEstimate, 
+                resetAt: nowEstimate, 
+                prevRespawn: currentRoomData.respawnAt || 0 
+            });
+            pushLog(`⚠️ RESET บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
+        };
+
+        window.undoReset = function(roomNumber) {
+            const nowEstimate = getSyncedCurrentTime();
+            const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
+            if (currentRoomData.prevRespawn) {
+                saveData(roomNumber, { 
+                    respawnAt: currentRoomData.prevRespawn, 
+                    updatedAt: nowEstimate, 
+                    resetAt: null, 
+                    prevRespawn: null 
+                });
+                pushLog(`🔄 UNDO เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
+            }
+        };
 
         function saveData(roomNumber, dataObj) {
             if (!serverData[currentServer]) serverData[currentServer] = {}; if (!serverData[currentServer][currentLocation]) serverData[currentServer][currentLocation] = {};
