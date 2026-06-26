@@ -140,7 +140,7 @@
         .divider { width: 100%; border: 0; border-top: 1px solid rgba(48, 54, 61, 0.5); margin-bottom: 18px; }
         
         .btn-group { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; width: 100%; }
-        .btn-action { font-family: 'Chakra Petch', sans-serif; background-color: #21262d; color: #8b949e; border: 1px solid #30363d; padding: 11px 0; font-size: 0.9rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-action { font-family: 'Chakra Petch', sans-serif; background-color: #21262d; color: #8b949e; border: 1px solid #30363d; padding: 11px 0; font-size: 0.85rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
         .btn-action:hover:not(:disabled) { background-color: #30363d; color: #f0f6fc; }
         .btn-spawn-style { color: var(--color-success); border: 1px solid rgba(46, 213, 115, 0.4); background-color: transparent; }
         .btn-spawn-style:hover:not(:disabled) { background-color: rgba(46, 213, 115, 0.1) !important; border-color: var(--color-success) !important; }
@@ -179,7 +179,6 @@
 </head>
 <body>
 
-    <!-- 1. หน้าเข้าสู่ระบบ (Login) -->
     <div id="loginSection" class="app-section auth-card">
         <div class="auth-title">TACTICAL LOGIN</div>
         <div class="auth-desc">ระบบจับเวลาบอสแคลน ยืนยันตัวตนเพื่อเข้าใช้งาน</div>
@@ -195,7 +194,6 @@
         <div class="auth-switch">ยังไม่มีบัญชีแคลน? <span onclick="showSection('registerSection')">สมัครสมาชิก</span></div>
     </div>
 
-    <!-- 2. หน้าสมัครสมาชิก (Register) -->
     <div id="registerSection" class="app-section auth-card register-mode">
         <div class="auth-title">REGISTRATION</div>
         <div class="auth-desc">สร้างบัญชีใหม่เพื่อร่วมทีมจับเวลาแบบ Real-time</div>
@@ -215,7 +213,6 @@
         <div class="auth-switch">มีบัญชีอยู่แล้ว? <span onclick="showSection('loginSection')">เข้าสู่ระบบ</span></div>
     </div>
 
-    <!-- 3. หน้าจัดการโปรไฟล์ชื่อผู้ใช้งาน -->
     <div id="profileSection" class="app-section auth-card profile-mode">
         <div class="auth-title">SELECT PROFILE</div>
         <div class="auth-desc" id="profileCountText">เลือกชื่อผู้ใช้งานของท่าน (0/5 ชื่อ)</div>
@@ -233,7 +230,6 @@
         <button class="btn-action" style="width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="handleForceResetView()">LOGOUT</button>
     </div>
 
-    <!-- 4. หน้าจอหลักแอปพลิเคชันกิลด์ -->
     <div id="mainTimerSection" class="app-section">
         
         <div class="global-online-badge">
@@ -246,7 +242,6 @@
             <button class="btn-nav" id="navBtnAdmin" onclick="switchAdminTab('admin')">👑 แผงควบคุมแอดมิน (CONTROL PANEL)</button>
         </div>
 
-        <!-- 📌 แท็บเนื้อหาที่ 1: หน้าจับเวลาบอส -->
         <div id="tabTimerContent" class="tab-content active">
             <h1>WARZ BOSS TIMER</h1>
             <div class="user-badge" id="activeUserBadge">👤 OPERATOR: Connecting...</div>
@@ -274,7 +269,6 @@
             </div>
         </div>
 
-        <!-- 📌 แท็บเนื้อหาที่ 2: หน้าแผงควบคุมแอดมินหลังบ้าน -->
         <div id="tabAdminContent" class="tab-content">
             <div class="admin-panel-box">
                 <div class="admin-header">👑 GUILD ADMINISTRATOR CONTROL PANEL</div>
@@ -369,7 +363,6 @@
             return new Date().getTime() + serverTimeOffset;
         }
 
-        // 🛠️ คลีนคีย์ดิบๆ ตรงๆ ตัดปัญหาแปลงสูตร Regex ผิดพลาดทำให้ชื่อตัวเลขบิดเบี้ยว
         function getCleanKey(username) {
             return username.toLowerCase().trim();
         }
@@ -435,30 +428,40 @@
             if(pass !== document.getElementById('regConfirmPass').value) return alert("รหัสผ่านไม่ตรงกัน");
             
             const simulatedEmail = `${user}@clan.com`;
-            const cleanEmail = getCleanKey(user); 
+            const cleanEmail = getCleanKey(user);
 
-            set(ref(database, `users_status/${cleanEmail}`), { username: user, email: simulatedEmail, status: "pending" }).then(() => {
-                return createUserWithEmailAndPassword(auth, simulatedEmail, pass);
-            }).then(() => {
+            createUserWithEmailAndPassword(auth, simulatedEmail, pass).then(() => {
+                set(ref(database, `users_status/${cleanEmail}`), { username: user, email: simulatedEmail, status: "pending" });
                 alert("สมัครสมาชิกสำเร็จ! กรุณาแจ้งให้แอดมินกดอนุมัติถาวรก่อนล็อกอินเข้าใช้งาน");
                 signOut(auth);
             }).catch(e => alert("สมัครไม่สำเร็จ: " + e.message));
         };
 
+        // 🛠️ อัปเกรดระบบดักจับ Error แปลงเป็นภาษาไทยให้อ่านง่ายเมื่อพิมพ์รหัสผิดหรือไม่พบบัญชี
         window.handleLogin = function() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
             if(!user || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
             
-            if(user.toLowerCase() === "admin" && pass === "admin123") {
+            if(user === "admin" && pass === "admin123") {
                 signInWithEmailAndPassword(auth, "admin@clan.com", "admin123").catch(() => {
                     createUserWithEmailAndPassword(auth, "admin@clan.com", "admin123").then(() => {
-                        set(ref(database, `users_status/admin`), { username: "admin", email: "admin@clan.com", status: "active" });
+                        const cleanEmail = "admin";
+                        set(ref(database, `users_status/${cleanEmail}`), { username: "admin", email: "admin@clan.com", status: "active" });
                     });
                 });
                 return;
             }
-            signInWithEmailAndPassword(auth, `${user}@clan.com`, pass).catch(() => alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"));
+            
+            signInWithEmailAndPassword(auth, `${user}@clan.com`, pass).catch((error) => {
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    alert("🔑 รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง");
+                } else if (error.code === 'auth/user-not-found') {
+                    alert("❌ ไม่พบชื่อผู้ใช้งานนี้ในระบบแคลน หรือบัญชีถูกลบแล้ว");
+                } else {
+                    alert("⚠️ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ยืนยันสิทธิ์");
+                }
+            });
         };
 
         function loadAdminUserPanel() {
@@ -523,7 +526,6 @@
             });
         }
 
-        // 🛠️ ปรับฟังก์ชันการสร้างชื่อเด็ดขาดโดยใช้คำสั่ง get() ดึงข้อมูลครั้งเดียวแบบเสถียร ไม่เอ๋อค้างแน่นอน
         window.handleCreateProfile = function() {
             const name = document.getElementById('newProfileName').value.trim(); 
             if(!name) return alert("กรุณาระบุชื่อ");
@@ -592,8 +594,7 @@
 
         window.handleLogout = function() { 
             if(auth.currentUser) {
-                const username = auth.currentUser.email.split('@')[0];
-                const cleanEmail = getCleanKey(username);
+                const cleanEmail = getCleanKey(auth.currentUser.email.split('@')[0]);
                 remove(ref(database, `online_users/${cleanEmail}`)); 
             }
             signOut(auth); 
@@ -700,7 +701,7 @@
 
         window.resetBoss = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
-            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.prevRespawn || 0, owner: "" });
+            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.respawnAt || 0, owner: "" });
             pushLog(`⚠️ RESET เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
         };
 
