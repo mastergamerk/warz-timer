@@ -93,25 +93,28 @@
         h1 { margin: 0; font-size: 2.6rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: linear-gradient(45deg, var(--color-danger), #ff6b81); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .user-badge { background-color: rgba(88, 166, 255, 0.1); color: #fff; border: 1px solid rgba(88, 166, 255, 0.3); padding: 6px 18px; border-radius: 4px; font-size: 0.95rem; margin-bottom: 25px; display: inline-block; font-weight: 600; }
         
-        /* 🎛️ โซนแผงควบคุมเสียงและเครื่องเล่นเพลงดีไซน์ใหม่ */
+        /* 🎛️ ปรับปรุงความสูงและดีไซน์ของกล่องควบคุมเสียงทั้งสองฝั่งให้เท่ากันเป๊ะตามสั่ง */
         .audio-dashboard-container {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 1230px; margin-bottom: 30px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 1230px; margin-bottom: 30px; align-items: stretch;
         }
         @media (max-width: 768px) { .audio-dashboard-container { grid-template-columns: 1fr; } }
 
         .audio-control-card {
-            background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 6px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;
+            background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 6px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; justify-content: flex-start;
         }
         .audio-card-title { font-size: 1.1rem; font-weight: 600; color: var(--color-primary); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
         
-        .volume-slider-group { display: flex; align-items: center; gap: 15px; background: rgba(7, 10, 14, 0.6); border: 1px solid var(--border-normal); padding: 15px; border-radius: 4px; }
+        .volume-slider-group { display: flex; align-items: center; gap: 15px; background: rgba(7, 10, 14, 0.6); border: 1px solid var(--border-normal); padding: 15px; border-radius: 4px; margin-bottom: 10px; }
         .volume-slider-group label { font-size: 0.9rem; font-weight: 600; min-width: 90px; color: #c9d1d9; }
         .slider-input { flex-grow: 1; accent-color: var(--color-primary); cursor: pointer; height: 6px; border-radius: 3px; }
         .volume-value { font-family: monospace; font-size: 1rem; color: var(--color-success); font-weight: bold; min-width: 45px; text-align: right; }
 
-        .youtube-input-group { display: flex; gap: 10px; margin-bottom: 12px; }
-        .youtube-player-area { width: 100%; background: #070a0e; border-radius: 4px; overflow: hidden; display: none; border: 1px solid var(--border-normal); position: relative; padding-top: 56.25%; /* อัตราส่วน 16:9 */ }
+        .youtube-input-group { display: flex; gap: 10px; margin-bottom: 12px; width: 100%; }
+        .youtube-player-area { width: 100%; background: #070a0e; border-radius: 4px; overflow: hidden; display: none; border: 1px solid var(--border-normal); position: relative; padding-top: 56.25%; margin-top: 12px; }
         .youtube-player-area iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+        /* แถบจัดกลุ่มปุ่มคุมเพลง YouTube สไตล์พรีเมียม */
+        .music-btn-cluster { display: flex; gap: 8px; width: 100%; margin-top: auto; }
 
         .server-selector { display: flex; gap: 15px; margin-bottom: 30px; }
         .btn-server { font-family: 'Chakra Petch', sans-serif; background-color: rgba(31, 36, 44, 0.5); color: var(--text-muted); border: 1px solid var(--border-normal); padding: 14px 28px; font-size: 1.05rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.3s; }
@@ -131,6 +134,7 @@
         .room-box { background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 4px; padding: 25px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
         .room-box.counting { border-color: rgba(255, 71, 87, 0.7); background-color: rgba(28, 21, 23, 0.6); box-shadow: 0 0 15px rgba(255, 71, 87, 0.1); }
         
+        /* 🚨 เอฟเฟกต์ไฟกระพริบ 3 สีสดใส ไม่หลอนสายตา ค้างสถานะไว้นาน 50 วินาที */
         .room-box.spawn-flash { animation: tacticalThreeColorFlash 3s infinite; }
         @keyframes tacticalThreeColorFlash {
             0%, 30% { border-color: var(--color-danger); box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); background-color: rgba(255, 71, 87, 0.05); }
@@ -256,7 +260,7 @@
             <div class="audio-dashboard-container">
                 <div class="audio-control-card">
                     <div class="audio-card-title">🔊 การตั้งค่าเสียงแจ้งเตือนแคลน</div>
-                    <div class="volume-slider-group">
+                    <div class="volume-slider-group" style="margin-top: auto; margin-bottom: auto; width: 100%; box-sizing: border-box;">
                         <label>ระดับเสียงเตือน:</label>
                         <input type="range" id="alertVolumeSlider" class="slider-input" min="0" max="100" value="50" oninput="updateAlertVolume(this.value)">
                         <span class="volume-value" id="alertVolumeVal">50%</span>
@@ -268,10 +272,15 @@
                         <input type="text" id="ytLinkInput" class="form-control" placeholder="วางลิงก์เพลง YouTube ที่นี่...">
                         <button class="btn-action btn-spawn-style" style="min-width:90px; padding:0 10px;" onclick="loadYouTubeVideo()">เปิดเพลง</button>
                     </div>
-                    <div class="volume-slider-group" style="margin-bottom: 12px; padding: 10px 15px;">
+                    <div class="volume-slider-group" style="padding: 10px 15px; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
                         <label>ระดับเสียงเพลง:</label>
                         <input type="range" id="musicVolumeSlider" class="slider-input" min="0" max="100" value="40" oninput="updateMusicVolume(this.value)">
                         <span class="volume-value" id="musicVolumeVal">40%</span>
+                    </div>
+                    <div class="music-btn-cluster">
+                        <button class="btn-action" style="padding: 7px 0;" onclick="controlMusic('prev')">⏮️ ก่อนหน้า</button>
+                        <button class="btn-action btn-reset-style" style="padding: 7px 0;" onclick="controlMusic('stop')">⏹️ ปิดเพลง</button>
+                        <button class="btn-action" style="padding: 7px 0;" onclick="controlMusic('next')">⏭️ ถัดไป</button>
                     </div>
                     <div class="youtube-player-area" id="ytPlayerFrameWrapper">
                         <div id="youtubePlayerTarget"></div>
@@ -341,8 +350,8 @@
         };
 
         const BOSS_COOLDOWN = 1 * 60 * 60 * 1000; 
-        const UNDO_WINDOW = 4 * 60 * 1000;       
-        const FLASH_DURATION = 50 * 1000;       
+        const UNDO_WINDOW = 4 * 60 * 1000;       // ⏱️ ขีดเส้นตายสิทธิ์ความปลอดภัยให้กดย้อนกลับ UNDO ภายใน 4 นาทีเท่านั้น
+        const FLASH_DURATION = 50 * 1000;      // 🚨 กำหนดความยาวของเอฟเฟกต์ไฟกระพริบ 3 สีเมื่อบอสเกิดค้างไว้ 50 วินาทีถ้วน
         
         let database = null; let auth = null;
         let currentServer = localStorage.getItem('warz_server') || "premium"; 
@@ -352,10 +361,6 @@
         let playedAlerts = {}; let activeProfileName = localStorage.getItem('warz_profile_name') || "Unknown";
         let isAdminAccount = false;
         let serverTimeOffset = 0; 
-
-        // 🔊 ตัวแปรระบบเสียงเตือนส่วนบุคคล (เซฟแยกเครื่องใครเครื่องมัน)
-        let alertVolume = parseInt(localStorage.getItem('warz_alert_volume') ?? '50');
-        let musicVolume = parseInt(localStorage.getItem('warz_music_volume') ?? '40');
         let ytPlayer = null;
 
         const locationNames = { norad: "Norad Military Base", ridgeway: "Ridgeway Airport", crystal: "Crystal Lake resort", campos: "Campos City" };
@@ -381,14 +386,13 @@
             }
         }
 
-        // 🔊 ฟังก์ชันจัดการระดับความดังของปุ่มสไลด์ปรับเสียงเตือนบอส ( local )
+        // 🎛️ จัดการเตรียมตัวควบคุมเสียงและฟังก์ชันปุ่มมัลติมีเดียของขวัญแคลน
         window.updateAlertVolume = function(val) {
             alertVolume = parseInt(val);
             localStorage.setItem('warz_alert_volume', val);
             document.getElementById('alertVolumeVal').innerText = val + "%";
         };
 
-        // 🎵 ฟังก์ชันจัดการระดับความดังของระบบลำโพงฟังเพลง ( local )
         window.updateMusicVolume = function(val) {
             musicVolume = parseInt(val);
             localStorage.setItem('warz_music_volume', val);
@@ -398,29 +402,33 @@
             }
         };
 
-        // 🎵 สกัดเอาไอดีวิดีโอจากลิงก์ YouTube เพื่อนำมาเล่นในระบบฝังตัวแอปแคลน
         function extractYouTubeID(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
+        function extractYouTubePlaylistID(url) {
+            const regExp = /[&?]list=([^#\&\?]+)/;
+            const match = url.match(url);
+            return (match && match[1]) ? match[1] : null;
+        }
+
         window.loadYouTubeVideo = function() {
             const url = document.getElementById('ytLinkInput').value.trim();
-            if(!url) return alert("กรุณากรอกลิงก์วิดีโอเพลง YouTube ก่อนครับ");
-            
+            if(!url) return alert("กรุณาใส่ลิงก์เพลงหรือเพลย์ลิสต์ YouTube ก่อนครับ");
+
             const videoId = extractYouTubeID(url);
-            if(!videoId) return alert("รูปแบบลิงก์ YouTube ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้งครับ");
+            const playlistId = extractYouTubePlaylistID(url);
 
             document.getElementById('ytPlayerFrameWrapper').style.display = 'block';
 
             if (ytPlayer === null) {
-                // สร้างอินสแตนซ์เครื่องเล่นใหม่
+                // สร้างหน้าต่างเครื่องเล่นฝังตัวครั้งแรกในระบบสากล
                 ytPlayer = new YT.Player('youtubePlayerTarget', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: videoId,
-                    playerVars: { 'autoplay': 1, 'controls': 1, 'rel': 0 },
+                    height: '100%', width: '100%',
+                    videoId: videoId || "",
+                    playerVars: { 'autoplay': 1, 'controls': 1, 'rel': 0, 'listType': playlistId ? 'playlist' : '', 'list': playlistId || '' },
                     events: {
                         'onReady': (event) => {
                             event.target.setVolume(musicVolume);
@@ -428,9 +436,29 @@
                     }
                 });
             } else {
-                // ถ้ามีตัวเดิมอยู่แล้ว ให้โหลดวิดีโอใหม่ทับเข้าไป
-                ytPlayer.loadVideoById(videoId);
+                // หากเครื่องเล่นถูกสร้างขึ้นไว้แล้ว สั่งโหลดวิดีโอหรือรายการเพลงถัดไปทับทันที
+                if (playlistId) {
+                    ytPlayer.loadPlaylist({ list: playlistId, listType: 'playlist', index: 0 });
+                } else if (videoId) {
+                    ytPlayer.loadVideoById(videoId);
+                }
                 ytPlayer.setVolume(musicVolume);
+            }
+        };
+
+        // ฟังก์ชันควบคุมปุ่มสลับเพลง ก่อนหน้า / ถัดไป / สั่งล้างปิดการเล่นเพลง
+        window.controlMusic = function(action) {
+            if (!ytPlayer || typeof ytPlayer.getPlayerState !== 'function') return;
+            if (action === 'next') {
+                if(typeof ytPlayer.nextVideo === 'function') ytPlayer.nextVideo();
+            }
+            if (action === 'prev') {
+                if(typeof ytPlayer.previousVideo === 'function') ytPlayer.previousVideo();
+            }
+            if (action === 'stop') {
+                ytPlayer.stopVideo();
+                document.getElementById('ytPlayerFrameWrapper').style.display = 'none';
+                document.getElementById('ytLinkInput').value = "";
             }
         };
 
@@ -517,7 +545,6 @@
         }
 
         function initAudioSlidersValues() {
-            // โหลดและแสดงผลค่าระดับความดังเสียงเดิมที่ตั้งไว้
             document.getElementById('alertVolumeSlider').value = alertVolume;
             document.getElementById('alertVolumeVal').innerText = alertVolume + "%";
             document.getElementById('musicVolumeSlider').value = musicVolume;
@@ -654,6 +681,7 @@
             
             document.getElementById('activeUserBadge').innerText = `👤 OPERATOR: ${activeProfileName} ${isAdminAccount ? '[ADMIN]' : ''}`;
             showSection('mainTimerSection');
+            
             initAudioSlidersValues();
             setupLiveListeners();
             switchAdminTab(activeTab);
@@ -704,16 +732,13 @@
         
         function pushLog(actionText) { const timeStr = new Date().toLocaleTimeString('th-TH'); push(ref(database, `logs`), { time: timeStr, user: activeProfileName, action: actionText }); }
 
-        // 🔊 ระบบแจ้งเตือนเบื้องหลังเสถียรสูง (Background Worker Tone) ผสมระดับ GainVolume ส่วนตัว
+        // 🔊 สัญญาณจำลองความถี่คลื่นวิทยุเตือนเบื้องหลังซอฟต์ ๆ ไม่ตกใจ ผสม Gain ปรับระดับเสียง
         function playBeep(type) {
             try {
-                // แปลงสเกลระดับเสียง 0-100 ให้เป็นระดับ Node Gain (สูงสุดไม่เกิน 0.15 เพื่อความนุ่มหู)
                 const configuredGain = (alertVolume / 100) * 0.15;
-                if(configuredGain <= 0) return; // ถ้าปิดเสียงไว้ ไม่ต้องเล่น
+                if(configuredGain <= 0) return; 
 
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // สั่งบังคับให้ Context กลับมาทำงานเสมอแม้เว็บจะรันอยู่เบื้องหลัง (กันเบราว์เซอร์ Sleep เสียง)
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
@@ -792,6 +817,8 @@
                 const resetOwnerName = roomData.resetOwner || "";
 
                 const isOwner = (ownerName === activeProfileName || ownerName === "");
+                
+                // ⏱️ เช็กสิทธิ์ความปลอดภัยปุ่มย้อนกลับ: ล็อกให้เฉพาะเจ้าของคนที่กดรีเซ็ตล่าสุดเท่านั้นกดย้อนสิทธิ์ได้
                 const isResetOwner = (resetOwnerName === activeProfileName || isAdminAccount);
 
                 if (roomData.resetAt && (now - roomData.resetAt < UNDO_WINDOW) && roomData.prevRespawn) { 
@@ -818,6 +845,7 @@
                         if (timeLeft < 5 * 60 * 1000) { btnReset.disabled = true; } else { btnReset.disabled = !isOwner; }
                     }
                     
+                // 🚨 บอสเกิดเสร็จสิ้น และล็อกสัญญาณกระพริบ 3 สี ค้างประโยคไว้เต็มๆ 50 วินาที
                 } else if (targetTime > 0 && timeLeft <= 0 && (now - targetTime < FLASH_DURATION)) {
                     boxEl.className = "room-box spawn-flash"; timerEl.innerText = "บอสเกิดแล้ว!!"; timerEl.className = "room-timer spawned-text"; progressEl.style.width = "0%";
                     if (!playedAlerts[alertKey + '_spawn']) { playBeep('spawn'); playedAlerts[alertKey + '_spawn'] = true; }
@@ -825,6 +853,7 @@
                     btnSpawn.disabled = true; 
                     btnReset.disabled = true;
                 } else {
+                    // ครบกำหนดเวลาค้าง 50 วินาที คืนร่างห้องให้พร้อมสำหรับการสปอว์นรอบถัดไปอัตโนมัติ
                     boxEl.className = "room-box"; timerEl.innerText = "00:00:00"; timerEl.className = "room-timer"; progressEl.style.width = "0%";
                     delete playedAlerts[alertKey + '_10m']; delete playedAlerts[alertKey + '_5m']; delete playedAlerts[alertKey + '_spawn'];
                     
