@@ -166,7 +166,7 @@
         .status-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; display: inline-block; }
         .status-pending { background-color: rgba(255, 211, 42, 0.15); color: var(--color-warning); border: 1px solid var(--color-warning); }
         .status-active { background-color: rgba(46, 213, 115, 0.15); color: var(--color-success); border: 1px solid var(--color-success); }
-        .status-banned { background-color: rgba(255, 71, 87, 0.15); color: var(--color-danger); border: 1px solid var(--danger); }
+        .status-banned { background-color: rgba(255, 71, 87, 0.15); color: var(--color-danger); border: 1px solid var(--color-danger); }
         
         .admin-btn { font-family: 'Chakra Petch', sans-serif; background-color: #21262d; border: 1px solid #30363d; color: #fff; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-right: 6px; font-weight: 600; transition: all 0.2s; }
         .admin-btn.btn-approve { border-color: var(--color-success); color: var(--color-success); }
@@ -179,6 +179,7 @@
 </head>
 <body>
 
+    <!-- 1. หน้าเข้าสู่ระบบ (Login) -->
     <div id="loginSection" class="app-section auth-card">
         <div class="auth-title">TACTICAL LOGIN</div>
         <div class="auth-desc">ระบบจับเวลาบอสแคลน ยืนยันตัวตนเพื่อเข้าใช้งาน</div>
@@ -194,6 +195,7 @@
         <div class="auth-switch">ยังไม่มีบัญชีแคลน? <span onclick="showSection('registerSection')">สมัครสมาชิก</span></div>
     </div>
 
+    <!-- 2. หน้าสมัครสมาชิก (Register) -->
     <div id="registerSection" class="app-section auth-card register-mode">
         <div class="auth-title">REGISTRATION</div>
         <div class="auth-desc">สร้างบัญชีใหม่เพื่อร่วมทีมจับเวลาแบบ Real-time</div>
@@ -213,6 +215,7 @@
         <div class="auth-switch">มีบัญชีอยู่แล้ว? <span onclick="showSection('loginSection')">เข้าสู่ระบบ</span></div>
     </div>
 
+    <!-- 3. หน้าจัดการโปรไฟล์ชื่อผู้ใช้งาน -->
     <div id="profileSection" class="app-section auth-card profile-mode">
         <div class="auth-title">SELECT PROFILE</div>
         <div class="auth-desc" id="profileCountText">เลือกชื่อผู้ใช้งานของท่าน (0/5 ชื่อ)</div>
@@ -230,6 +233,7 @@
         <button class="btn-action" style="width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="handleForceResetView()">LOGOUT</button>
     </div>
 
+    <!-- 4. หน้าจอหลักแอปพลิเคชันกิลด์ -->
     <div id="mainTimerSection" class="app-section">
         
         <div class="global-online-badge">
@@ -242,6 +246,7 @@
             <button class="btn-nav" id="navBtnAdmin" onclick="switchAdminTab('admin')">👑 แผงควบคุมแอดมิน (CONTROL PANEL)</button>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 1: หน้าจับเวลาบอส -->
         <div id="tabTimerContent" class="tab-content active">
             <h1>WARZ BOSS TIMER</h1>
             <div class="user-badge" id="activeUserBadge">👤 OPERATOR: Connecting...</div>
@@ -269,6 +274,7 @@
             </div>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 2: หน้าแผงควบคุมแอดมินหลังบ้าน -->
         <div id="tabAdminContent" class="tab-content">
             <div class="admin-panel-box">
                 <div class="admin-header">👑 GUILD ADMINISTRATOR CONTROL PANEL</div>
@@ -291,7 +297,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, update, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, update, onDisconnect, remove, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -363,11 +369,16 @@
             return new Date().getTime() + serverTimeOffset;
         }
 
+        // 🛠️ แก้ไขคีย์บันทึกโครงสร้างข้อมูลอีเมลให้ตรงล็อกเดียวกันทั้งหมดป้องกันบั๊กสิทธิ์ค้าง
+        function getCleanKey(email) {
+            return email.toLowerCase().replace(/@clan\.com$/, '').replace(/[^a-zA-Z0-9_]/g, '_');
+        }
+
         function checkUserStatus(user) {
-            const cleanEmail = user.email.replace(/\./g, '_').replace('@', '_');
+            const cleanEmail = getCleanKey(user.email);
             
             const userPresenceRef = ref(database, `online_users/${cleanEmail}`);
-            set(userPresenceRef, { username: user.email.split('@')[0], lastActive: getSyncedCurrentTime() });
+            set(userPresenceRef, { username: cleanEmail, lastActive: getSyncedCurrentTime() });
             onDisconnect(userPresenceRef).remove(); 
 
             onValue(ref(database, `online_users`), (onlineSnap) => {
@@ -419,10 +430,11 @@
         window.handleSignUp = function() {
             const user = document.getElementById('regUser').value.trim();
             const pass = document.getElementById('regPass').value;
+            if(!user || !pass) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
             if(pass !== document.getElementById('regConfirmPass').value) return alert("รหัสผ่านไม่ตรงกัน");
             
             const simulatedEmail = `${user}@clan.com`;
-            const cleanEmail = simulatedEmail.replace(/\./g, '_').replace('@', '_');
+            const cleanEmail = getCleanKey(simulatedEmail);
 
             createUserWithEmailAndPassword(auth, simulatedEmail, pass).then(() => {
                 set(ref(database, `users_status/${cleanEmail}`), { username: user, email: simulatedEmail, status: "pending" });
@@ -434,11 +446,12 @@
         window.handleLogin = function() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
+            if(!user || !pass) return alert("กรุณากรอกข้อมูลให้ครบ");
             
             if(user === "admin" && pass === "admin123") {
                 signInWithEmailAndPassword(auth, "admin@clan.com", "admin123").catch(() => {
                     createUserWithEmailAndPassword(auth, "admin@clan.com", "admin123").then(() => {
-                        const cleanEmail = "admin_clan_com";
+                        const cleanEmail = "admin";
                         set(ref(database, `users_status/${cleanEmail}`), { username: "admin", email: "admin@clan.com", status: "active" });
                     });
                 });
@@ -509,6 +522,26 @@
             });
         }
 
+        // 🛠️ แก้ไขบั๊กปุ่มกดสร้างตัวละครนิ่งสนิท เปลี่ยนมาใช้คำสั่ง get() ดึงข้อมูลครั้งเดียว ไม่เกิดลูปซ้ำซ้อน
+        window.handleCreateProfile = function() {
+            const name = document.getElementById('newProfileName').value.trim(); 
+            if(!name) return alert("กรุณาระบุชื่อ");
+            
+            const uid = auth.currentUser.uid; 
+            const pRef = ref(database, `users_profiles/${uid}`);
+            
+            get(pRef).then((snap) => {
+                const curr = snap.val() || []; 
+                if(curr.length >= 5) return alert("สร้างได้สูงสุด 5 ชื่อ"); 
+                if(curr.includes(name)) return alert("มีชื่อนี้อยู่แล้ว");
+                
+                curr.push(name); 
+                set(pRef, curr).then(() => {
+                    document.getElementById('newProfileName').value = "";
+                });
+            }).catch(e => alert("เกิดข้อผิดพลาด: " + e.message));
+        };
+
         window.selectProfile = function(pName) {
             activeProfileName = pName;
             localStorage.setItem('warz_profile_name', pName);
@@ -524,13 +557,13 @@
         function setupLiveListeners() {
             onValue(ref(database, `boss`), (snap) => { 
                 if(snap.val()) serverData = snap.val(); 
-                buildRoomsGrid(); // อัปเดตโครงสร้างเมื่อข้อมูลเปลี่ยนแบบเรียลไทม์ (ป้องกันปุ่มดีเลย์)
+                buildRoomsGrid(); 
             });
             
             onValue(ref(database, `logs`), (snap) => {
                 const logBox = document.getElementById('logsBoxList'); if(!logBox) return; logBox.innerHTML = ""; const arr = []; 
                 snap.forEach(c => { arr.unshift(c.val()); }); 
-                if(arr.length === 0) logBox.innerHTML = '<div style="color:var(--text-muted)">ไม่มีความเคลื่อนไไหมล่าสุดในขณะนี้...</div>';
+                if(arr.length === 0) logBox.innerHTML = '<div style="color:var(--text-muted)">ไม่มีความเคลื่อนไหวล่าสุดในขณะนี้...</div>';
                 arr.slice(0, 30).forEach(l => {
                     logBox.innerHTML += `<div class="log-item"><span class="log-time">[${l.time}]</span> <span style="color:var(--color-primary); font-weight:600;">${l.user}</span>: ${l.action}</div>`;
                 });
@@ -558,7 +591,7 @@
 
         window.handleLogout = function() { 
             if(auth.currentUser) {
-                const cleanEmail = auth.currentUser.email.replace(/\./g, '_').replace('@', '_');
+                const cleanEmail = getCleanKey(auth.currentUser.email);
                 remove(ref(database, `online_users/${cleanEmail}`)); 
             }
             signOut(auth); 
@@ -585,7 +618,6 @@
             for (let i = 1; i <= maxRooms; i++) {
                 const roomBox = document.createElement('div'); roomBox.className = "room-box"; roomBox.id = `box_room_${i}`;
                 
-                // ดึงข้อมูลผู้คุมสิทธิ์ห้องนั้นๆ จาก Firebase
                 const roomData = serverData[currentServer]?.[currentLocation]?.[`room_${i}`] || {};
                 const ownerName = roomData.owner || "";
                 let ownerText = "";
@@ -614,18 +646,17 @@
 
             const maxRooms = (currentServer === "premium") ? 50 : 30; const now = getSyncedCurrentTime(); 
             for (let i = 1; i <= maxRooms; i++) {
-                const boxEl = document.getElementById(`box_room_${i}`); const timerEl = document.getElementById(`timer_room_${i}`); const progressEl = document.getElementById(`progress_room_${i}`);
+                const boxEl = document.getElementById(`box_room_${i}`); const timerEl = document.getElementById('timer_room_' + i); const progressEl = document.getElementById('progress_room_' + i);
                 const btnSpawn = document.getElementById(`btn_spawn_${i}`); const btnUndo = document.getElementById(`id_btn_undo_${i}`); const btnReset = document.getElementById(`id_btn_reset_${i}`);
                 if (!timerEl) continue;
 
                 const roomData = serverData[currentServer]?.[currentLocation]?.[`room_${i}`] || {}; const targetTime = roomData.respawnAt || 0; const updatedAt = roomData.updatedAt || 0; const timeLeft = targetTime - now;
                 const ownerName = roomData.owner || "";
 
-                // ตรวจสอบเงื่อนไขการเป็นเจ้าของ (สิทธิ์กดปุ่ม)
                 const isOwner = (ownerName === activeProfileName || ownerName === "");
 
                 if (roomData.resetAt && (now - roomData.resetAt < UNDO_WINDOW) && roomData.prevRespawn) { 
-                    btnUndo.disabled = !isOwner; // ล็อกปุ่ม UNDO เฉพาะเจ้าของ
+                    btnUndo.disabled = !isOwner; 
                 } else { 
                     btnUndo.disabled = true; 
                 }
@@ -642,25 +673,17 @@
                     if (minutes === 5 && seconds === 0 && !playedAlerts[alertKey + '_5m']) { playBeep('5min'); playedAlerts[alertKey + '_5m'] = true; }
                     
                     btnSpawn.disabled = true;
-                    
-                    // ล็อกปุ่ม RESET เฉพาะคนกดคุมห้องเท่านั้น (ยกเว้น Admin กดได้ตลอด)
-                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) { 
-                        btnReset.disabled = true; 
-                    } else { 
-                        btnReset.disabled = !isOwner; 
-                    }
+                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) { btnReset.disabled = true; } else { btnReset.disabled = !isOwner; }
                 } else if (targetTime > 0 && timeLeft <= 0 && (now - targetTime < FLASH_DURATION)) {
                     boxEl.className = "room-box spawn-flash"; timerEl.innerText = "บอสเกิดแล้ว!!"; timerEl.className = "room-timer spawned-text"; progressEl.style.width = "0%";
                     if (!playedAlerts[alertKey + '_spawn']) { playBeep('spawn'); playedAlerts[alertKey + '_spawn'] = true; }
                     
-                    // บอสเกิดแล้ว ปล่อยให้คนอื่นแย่งกด Spawn ต่อไปได้
                     btnSpawn.disabled = !isOwner; 
                     btnReset.disabled = true;
                 } else {
                     boxEl.className = "room-box"; timerEl.innerText = "00:00:00"; timerEl.className = "room-timer"; progressEl.style.width = "0%";
                     delete playedAlerts[alertKey + '_10m']; delete playedAlerts[alertKey + '_5m']; delete playedAlerts[alertKey + '_spawn'];
                     
-                    // ห้องว่าง ปลดล็อกให้ทุกคนกดได้ทั้งหมด
                     btnSpawn.disabled = false; 
                     btnReset.disabled = true;
                 }
@@ -669,14 +692,12 @@
 
         window.spawnBoss = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const nextRespawn = nowEstimate + BOSS_COOLDOWN;
-            // บันทึกชื่อคนกดลงในฟิลด์ owner เพื่อล็อกสิทธิ์
             saveData(roomNumber, { respawnAt: nextRespawn, updatedAt: nowEstimate, resetAt: null, prevRespawn: null, owner: activeProfileName });
             pushLog(`🎯 SPAWN บอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
         };
 
         window.resetBoss = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
-            // การเคลียร์หรือรีเซ็ตระบบ จะปลดล็อก owner ให้เป็นค่าว่างเพื่อให้คนอื่นเล่นต่อได้
             saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.respawnAt || 0, owner: "" });
             pushLog(`⚠️ RESET เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
         };
@@ -684,7 +705,6 @@
         window.undoReset = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
             if (currentRoomData.prevRespawn) {
-                // คืนค่าเวลาเดิม และคืนค่าสิทธิ์ความเป็นเจ้าของคนเดิมกลับมา
                 saveData(roomNumber, { respawnAt: currentRoomData.prevRespawn, updatedAt: nowEstimate, resetAt: null, prevRespawn: null, owner: activeProfileName });
                 pushLog(`🔄 UNDO เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
             }
