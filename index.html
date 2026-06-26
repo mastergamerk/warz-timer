@@ -110,11 +110,13 @@
         
         .room-box { background-color: var(--bg-card); border: 1px solid var(--border-normal); border-radius: 4px; padding: 25px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
         .room-box.counting { border-color: rgba(255, 71, 87, 0.7); background-color: rgba(28, 21, 23, 0.6); box-shadow: 0 0 15px rgba(255, 71, 87, 0.1); }
-        .room-box.spawn-flash { animation: tacticalFlash 2s infinite alternate; }
-        @keyframes tacticalFlash {
-            0% { border-color: var(--color-success); box-shadow: 0 0 20px rgba(46, 213, 115, 0.3); background-color: rgba(46, 213, 115, 0.05); }
-            50% { border-color: var(--color-warning); box-shadow: 0 0 20px rgba(255, 211, 42, 0.3); background-color: rgba(255, 211, 42, 0.05); }
-            100% { border-color: var(--color-danger); box-shadow: 0 0 20px rgba(255, 71, 87, 0.3); background-color: rgba(255, 71, 87, 0.05); }
+        
+        /* 🚨 เอฟเฟกต์กระพริบ 3 สีแบบนุ่มนวล แดง ➡️ เหลือง ➡️ เขียว เมื่อครบ 0 นาที ค้าง 50 วินาที */
+        .room-box.spawn-flash { animation: tacticalThreeColorFlash 3s infinite; }
+        @keyframes tacticalThreeColorFlash {
+            0%, 30% { border-color: var(--color-danger); box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); background-color: rgba(255, 71, 87, 0.05); }
+            33%, 63% { border-color: var(--color-warning); box-shadow: 0 0 20px rgba(255, 211, 42, 0.4); background-color: rgba(255, 211, 42, 0.05); }
+            66%, 100% { border-color: var(--color-success); box-shadow: 0 0 20px rgba(46, 213, 115, 0.4); background-color: rgba(46, 213, 115, 0.05); }
         }
 
         .room-title { font-size: 1.1rem; font-weight: 600; color: #c9d1d9; margin-bottom: 5px; letter-spacing: 1.5px; }
@@ -133,7 +135,9 @@
             white-space: nowrap;
         }
         .room-timer.counting-text { color: #ff5e6c; }
-        .room-timer.spawned-text { color: var(--color-success); font-size: 2rem; letter-spacing: 0px; }
+        
+        /* สไตล์ข้อความบอสเกิดแล้ว ค้างเรืองแสงเขียวอ่อนสบายตา */
+        .room-timer.spawned-text { color: var(--color-success); font-size: 2rem; letter-spacing: 0px; text-shadow: 0 0 10px rgba(46, 213, 115, 0.3); }
 
         .progress-container { width: 100%; height: 5px; background-color: #161b22; margin-bottom: 20px; border-radius: 10px; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4757, #ff6b81); box-shadow: 0 0 8px #ff4757; transition: width 1s linear; }
@@ -179,6 +183,7 @@
 </head>
 <body>
 
+    <!-- 1. หน้าเข้าสู่ระบบ (Login) -->
     <div id="loginSection" class="app-section auth-card">
         <div class="auth-title">TACTICAL LOGIN</div>
         <div class="auth-desc">ระบบจับเวลาบอสแคลน ยืนยันตัวตนเพื่อเข้าใช้งาน</div>
@@ -194,6 +199,7 @@
         <div class="auth-switch">ยังไม่มีบัญชีแคลน? <span onclick="showSection('registerSection')">สมัครสมาชิก</span></div>
     </div>
 
+    <!-- 2. หน้าสมัครสมาชิก (Register) -->
     <div id="registerSection" class="app-section auth-card register-mode">
         <div class="auth-title">REGISTRATION</div>
         <div class="auth-desc">สร้างบัญชีใหม่เพื่อร่วมทีมจับเวลาแบบ Real-time</div>
@@ -213,6 +219,7 @@
         <div class="auth-switch">มีบัญชีอยู่แล้ว? <span onclick="showSection('loginSection')">เข้าสู่ระบบ</span></div>
     </div>
 
+    <!-- 3. หน้าจัดการโปรไฟล์ชื่อผู้ใช้งาน -->
     <div id="profileSection" class="app-section auth-card profile-mode">
         <div class="auth-title">SELECT PROFILE</div>
         <div class="auth-desc" id="profileCountText">เลือกชื่อผู้ใช้งานของท่าน (0/5 ชื่อ)</div>
@@ -230,6 +237,7 @@
         <button class="btn-action" style="width:100%; border-color:var(--color-danger); color:var(--color-danger);" onclick="handleForceResetView()">LOGOUT</button>
     </div>
 
+    <!-- 4. หน้าจอหลักแอปพลิเคชันกิลด์ -->
     <div id="mainTimerSection" class="app-section">
         
         <div class="global-online-badge">
@@ -242,6 +250,7 @@
             <button class="btn-nav" id="navBtnAdmin" onclick="switchAdminTab('admin')">👑 แผงควบคุมแอดมิน (CONTROL PANEL)</button>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 1: หน้าจับเวลาบอส -->
         <div id="tabTimerContent" class="tab-content active">
             <h1>WARZ BOSS TIMER</h1>
             <div class="user-badge" id="activeUserBadge">👤 OPERATOR: Connecting...</div>
@@ -269,6 +278,7 @@
             </div>
         </div>
 
+        <!-- 📌 แท็บเนื้อหาที่ 2: หน้าแผงควบคุมแอดมินหลังบ้าน -->
         <div id="tabAdminContent" class="tab-content">
             <div class="admin-panel-box">
                 <div class="admin-header">👑 GUILD ADMINISTRATOR CONTROL PANEL</div>
@@ -306,8 +316,8 @@
         };
 
         const BOSS_COOLDOWN = 1 * 60 * 60 * 1000; 
-        const UNDO_WINDOW = 5 * 60 * 1000;       
-        const FLASH_DURATION = 30 * 1000;       
+        const UNDO_WINDOW = 4 * 60 * 1000;       // 🛠️ ปรับค้างสิทธิ์ปุ่ม UNDO ขีดเส้นตายที่ 4 นาทีตามคำขอเป๊ะๆ
+        const FLASH_DURATION = 50 * 1000;       // 🛠️ ล็อกให้เอฟเฟกต์กระพริบและค้างคำว่าบอสเกิดยาวนาน 50 วินาทีตามสั่ง
         
         let database = null; let auth = null;
         let currentServer = localStorage.getItem('warz_server') || "premium"; 
@@ -437,7 +447,6 @@
             }).catch(e => alert("สมัครไม่สำเร็จ: " + e.message));
         };
 
-        // 🛠️ อัปเกรดระบบดักจับ Error แปลงเป็นภาษาไทยให้อ่านง่ายเมื่อพิมพ์รหัสผิดหรือไม่พบบัญชี
         window.handleLogin = function() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPass').value;
@@ -602,13 +611,35 @@
         
         function pushLog(actionText) { const timeStr = new Date().toLocaleTimeString('th-TH'); push(ref(database, `logs`), { time: timeStr, user: activeProfileName, action: actionText }); }
 
+        // 🛠️ ระบบจูนเสียง Ambient Beep นุ่มนวล ละมุนหู ไม่ตกใจ ตามบรีฟเป๊ะๆ
         function playBeep(type) {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                if (type === '10min') { oscillator.frequency.setValueAtTime(480, audioCtx.currentTime); oscillator.start(); setTimeout(() => oscillator.stop(), 120); } 
-                else if (type === '5min') { oscillator.frequency.setValueAtTime(600, audioCtx.currentTime); oscillator.start(); setTimeout(() => oscillator.stop(), 120); } 
-                else if (type === 'spawn') { oscillator.frequency.setValueAtTime(780, audioCtx.currentTime); oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8); setTimeout(() => oscillator.stop(), 800); }
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                const oscillator = audioCtx.createOscillator(); 
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode); 
+                gainNode.connect(audioCtx.destination); 
+                
+                if (type === '10min') { 
+                    gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime); // เสียงวิทยุซอฟต์ๆ
+                    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); 
+                    oscillator.start(); 
+                    setTimeout(() => oscillator.stop(), 150); 
+                } 
+                else if (type === '5min') { 
+                    gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime); // เสียง Tactical Blip เตือนเตรียมตัว
+                    oscillator.frequency.setValueAtTime(520, audioCtx.currentTime); 
+                    oscillator.start(); 
+                    setTimeout(() => oscillator.stop(), 150); 
+                } 
+                else if (type === 'spawn') { 
+                    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime); // เสียงเปิดไฟเรดาร์ Sonar Chime ไล่เสียงนุ่มนวล
+                    oscillator.frequency.setValueAtTime(660, audioCtx.currentTime); 
+                    oscillator.start(); 
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0); 
+                    setTimeout(() => oscillator.stop(), 1000); 
+                }
             } catch (e) {}
         }
 
@@ -655,11 +686,16 @@
 
                 const roomData = serverData[currentServer]?.[currentLocation]?.[`room_${i}`] || {}; const targetTime = roomData.respawnAt || 0; const updatedAt = roomData.updatedAt || 0; const timeLeft = targetTime - now;
                 const ownerName = roomData.owner || "";
+                const resetOwnerName = roomData.resetOwner || "";
 
+                // เช็กความเป็นเจ้าของ: สิทธิ์กดปุ่ม
                 const isOwner = (ownerName === activeProfileName || ownerName === "");
+                
+                // 🛠️ ล็อกสิทธิ์ปุ่ม UNDO: เฉพาะคนที่กด RESET ล่าสุดเท่านั้นที่จะกดได้ภายในกรอบเวลา 4 นาที คนอื่นห้ามแตะเด็ดขาด!
+                const isResetOwner = (resetOwnerName === activeProfileName || isAdminAccount);
 
                 if (roomData.resetAt && (now - roomData.resetAt < UNDO_WINDOW) && roomData.prevRespawn) { 
-                    btnUndo.disabled = !isOwner; 
+                    btnUndo.disabled = !isResetOwner; 
                 } else { 
                     btnUndo.disabled = true; 
                 }
@@ -676,14 +712,22 @@
                     if (minutes === 5 && seconds === 0 && !playedAlerts[alertKey + '_5m']) { playBeep('5min'); playedAlerts[alertKey + '_5m'] = true; }
                     
                     btnSpawn.disabled = true;
-                    if (timeLeft < 5 * 60 * 1000 && !isAdminAccount) { btnReset.disabled = true; } else { btnReset.disabled = !isOwner; }
+                    // แอดมินสามารถกดรีเซ็ตได้ตลอด สมาชิกทั่วไปกดได้เฉพาะที่เป็นเจ้าของ
+                    if (isAdminAccount) {
+                        btnReset.disabled = false;
+                    } else {
+                        if (timeLeft < 5 * 60 * 1000) { btnReset.disabled = true; } else { btnReset.disabled = !isOwner; }
+                    }
+                    
+                // 🛠️ บอสเกิดเสร็จสิ้น และยังอยู่ในช่วงค้างไฟกะพริบ 30 วินาที (FLASH_DURATION)
                 } else if (targetTime > 0 && timeLeft <= 0 && (now - targetTime < FLASH_DURATION)) {
                     boxEl.className = "room-box spawn-flash"; timerEl.innerText = "บอสเกิดแล้ว!!"; timerEl.className = "room-timer spawned-text"; progressEl.style.width = "0%";
                     if (!playedAlerts[alertKey + '_spawn']) { playBeep('spawn'); playedAlerts[alertKey + '_spawn'] = true; }
                     
-                    btnSpawn.disabled = !isOwner; 
+                    btnSpawn.disabled = true; // บอสยังอยู่ในช่วง Flash ห้ามเพิ่งแย่งกดสปอว์นทับ
                     btnReset.disabled = true;
                 } else {
+                    // 🛠️ หลุดช่วงเวลาบอสเกิดแล้ว ห้องปรับกลับมาว่างให้ทุกคนสามารถกดเคลียร์หรือเริ่มเล่นใหม่ได้
                     boxEl.className = "room-box"; timerEl.innerText = "00:00:00"; timerEl.className = "room-timer"; progressEl.style.width = "0%";
                     delete playedAlerts[alertKey + '_10m']; delete playedAlerts[alertKey + '_5m']; delete playedAlerts[alertKey + '_spawn'];
                     
@@ -701,14 +745,15 @@
 
         window.resetBoss = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
-            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.respawnAt || 0, owner: "" });
+            // 🛠️ บันทึกสิทธิ์ resetOwner ให้กับคนกดเคลียร์เวลาล่าสุด เพื่อล็อกสิทธิ์ในการกด UNDO คืนร่าง
+            saveData(roomNumber, { respawnAt: 0, updatedAt: nowEstimate, resetAt: nowEstimate, prevRespawn: currentRoomData.respawnAt || 0, owner: "", resetOwner: activeProfileName });
             pushLog(`⚠️ RESET เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
         };
 
         window.undoReset = function(roomNumber) {
             const nowEstimate = getSyncedCurrentTime(); const currentRoomData = serverData[currentServer]?.[currentLocation]?.[`room_${roomNumber}`] || {};
             if (currentRoomData.prevRespawn) {
-                saveData(roomNumber, { respawnAt: currentRoomData.prevRespawn, updatedAt: nowEstimate, resetAt: null, prevRespawn: null, owner: activeProfileName });
+                saveData(roomNumber, { respawnAt: currentRoomData.prevRespawn, updatedAt: nowEstimate, resetAt: null, prevRespawn: null, owner: activeProfileName, resetOwner: "" });
                 pushLog(`🔄 UNDO เวลาบอสที่ [${currentServer.toUpperCase()}] -> ${locationNames[currentLocation]} ห้องที่ ${roomNumber.toString().padStart(3, '0')}`);
             }
         };
